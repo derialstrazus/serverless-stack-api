@@ -1,9 +1,8 @@
 import * as uuid from "uuid";
-import AWS from "aws-sdk";
+import handler from "./libs/handler-lib";
+import dynamoDB from "./libs/dynamodb-lib";
 
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
-
-export function main(event, context, callback) {
+export const main = handler(async (event, context) => {
     const data = JSON.parse(event.body);
 
     const params = {
@@ -17,28 +16,7 @@ export function main(event, context, callback) {
         }
     };
 
-    dynamoDB.put(params, (error, data) => {
-        const headers = {
-            "Access-Control-Allow-Origins": "*",
-            "Access-Control-Allow-Credentials": true
-        };
+    await dynamoDB.put(params);
 
-        if (error) {
-            const response = {
-                statusCode: 500,
-                headers: headers,
-                body: JSON.stringify({status: false})
-            };
-            callback(null, response);
-            return;
-        }
-
-        const response = {
-            statusCode: 200,
-            headers: headers,
-            body: JSON.stringify(params.Item)
-        };
-        callback(null, response);
-    });
-
-}
+    return params.Item;
+});
